@@ -1,16 +1,21 @@
 use crate::error::ErrorCode;
 use anchor_lang::{prelude::*, system_program};
-use anchor_spl::token_2022::spl_token_2022::{
-    self,
-    extension::{
-        transfer_fee::{TransferFeeConfig, MAX_FEE_BASIS_POINTS},
-        BaseStateWithExtensions, ExtensionType, StateWithExtensions,
-    },
-};
 use anchor_spl::{
     token::{Token, TokenAccount},
-    token_2022::{self},
-    token_interface::{initialize_account3, InitializeAccount3, Mint},
+    token_2022::{
+        self,
+        spl_token_2022::{
+            self,
+            extension::{
+                transfer_fee::{TransferFeeConfig, MAX_FEE_BASIS_POINTS},
+                ExtensionType, StateWithExtensions,
+            },
+        },
+    },
+    token_interface::{
+        initialize_account3, spl_token_2022::extension::BaseStateWithExtensions,
+        InitializeAccount3, Mint,
+    },
 };
 use std::collections::HashSet;
 
@@ -77,7 +82,6 @@ pub fn transfer_from_pool_vault_to_user<'a>(
     )
 }
 
-/// Issue a spl_token `MintTo` instruction.
 pub fn token_mint_to<'a>(
     authority: AccountInfo<'a>,
     token_program: AccountInfo<'a>,
@@ -122,7 +126,6 @@ pub fn token_burn<'a>(
     )
 }
 
-/// Calculate the fee for output amount
 pub fn get_transfer_inverse_fee(mint_info: &AccountInfo, post_fee_amount: u64) -> Result<u64> {
     if *mint_info.owner == Token::id() {
         return Ok(0);
@@ -157,7 +160,6 @@ pub fn get_transfer_inverse_fee(mint_info: &AccountInfo, post_fee_amount: u64) -
     Ok(fee)
 }
 
-/// Calculate the fee for input amount
 pub fn get_transfer_fee(mint_info: &AccountInfo, pre_fee_amount: u64) -> Result<u64> {
     if *mint_info.owner == Token::id() {
         return Ok(0);
@@ -191,8 +193,6 @@ pub fn is_supported_mint(mint_account: &InterfaceAccount<Mint>) -> Result<bool> 
         if e != ExtensionType::TransferFeeConfig
             && e != ExtensionType::MetadataPointer
             && e != ExtensionType::TokenMetadata
-            && e != ExtensionType::InterestBearingConfig
-            && e != ExtensionType::ScaledUiAmount
         {
             return Ok(false);
         }
